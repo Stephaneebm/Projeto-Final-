@@ -1,0 +1,157 @@
+int q,x;
+q=0;
+
+//trocar if por switch e função
+ // Funcao prinicipal
+int main(void) {
+    //configure os perifericos
+    char tecla;
+    int a,b,c;
+    
+    LCD_Init(); 
+    Teclado_Init();
+    LCD_LimpaDisplay(); 
+    
+    TRISGbits.TRISG2=0; 
+    LATGbits.LATG2 = 0; 
+    T1CON=0;
+    TMR1=0;
+    PR1 = 31249;
+    T1CON = 0x0020;
+    IPC0bits.T1IP = 1;
+    IFS0bits.T1IF = 0;
+    IEC0bits.T1IE = 1;
+    
+    T2CON=0;
+    TMR2=0;
+    PR2 = 31249;
+    T2CON = 0x0020;
+    IPC1bits.T2IP = 2;
+    IFS0bits.T2IF = 0;
+    IEC0bits.T2IE = 1;    
+   
+    a=0;
+    b=0;
+    
+    
+    LCD_EscreveFrase("Tempo:(0-40s)");
+    
+    
+    while (1) // Loop principal
+    {
+        
+        LCD_PosicaoCursor(2,1);
+        LCD_EscreveInteiro(a);
+        LCD_PosicaoCursor(2,2);
+        LCD_EscreveInteiro(b);
+        LCD_PosicaoCursor(2,2);
+        
+        do{
+            tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
+            __delay_ms(200);
+
+        }while(tecla==0);
+        
+        
+        if(tecla=='3')
+        {
+            b=b+5;
+            LCD_PosicaoCursor(2,2);
+            if(b>9)
+            {
+                b=0;
+                a++;
+                LCD_PosicaoCursor(2,2);
+            }
+        }
+        else if(tecla=='1')
+        {
+            b=b-5;
+            LCD_PosicaoCursor(2,2);
+            if(b<0)
+            {
+                b=5;
+                a--;
+                LCD_PosicaoCursor(2,2);
+            }
+        }
+        else if(tecla=='2')
+        {
+            c=a*10+b;
+            if(c==0)
+            {
+                LCD_LimpaDisplay();
+                LCD_EscreveFrase("Tempo Invalido");
+                __delay_ms(3000);
+                LCD_LimpaDisplay();
+                LCD_EscreveFrase("Tempo:(0-40s)");
+
+            }
+            switch(c)
+            {
+                case 5:
+                    x=5;
+                    break;
+                case 10:
+                    x=10;
+                    break;
+                case 15:
+                    x=15;
+                    break;
+                case 20:
+                    x=20;
+                    break;
+                case 25:
+                    x=25;
+                    break;
+                case 30:
+                    x=30;
+                    break;
+                case 35:
+                    x=35;
+                    break;
+                case 40:
+                    x=40;
+                    break;
+                        
+            }
+            T1CONbits.TON = 1;
+//            
+        }
+        else if(tecla=='*')
+        {
+            T2CONbits.TON = 0;
+            LCD_LimpaDisplay();
+            LCD_EscreveFrase("Remedio tomado<3");
+            __delay_ms(3000);
+            LCD_LimpaDisplay();
+            LCD_EscreveFrase("Tempo:(0-40s)");
+            T1CONbits.TON = 1;
+        }
+       
+    }
+
+    return -1;
+}
+
+
+// Interrupt function 
+void __attribute__((interrupt,no_auto_psv)) _T1Interrupt(void){
+    int i;
+    q++; 
+    LATGbits.LATG2=0;      
+    IFS0bits.T1IF = 0;
+    if(q==x)
+    {
+        T2CONbits.TON = 1;    
+        T1CONbits.TON = 0;
+        
+        q=0;
+    }
+      
+}
+void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
+    
+    LATGbits.LATG2^=1;
+    IFS0bits.T2IF = 0;
+}
