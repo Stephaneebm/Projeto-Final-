@@ -1,0 +1,3 @@
+Projeto Final: resumo/explicação rápida do funcionamento (OBS: os nomes das variaveis são temporarios, vou mudar para nomes com melhor significado depois)
+Uso de variaveis globais(q e x) para que tanto a funçao principal quanto a interrupção possam ver os mesmos valores.
+Declaração de outras variaveis e configuração do display, do teclado e das interrupções.
