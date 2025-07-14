@@ -1,4 +1,19 @@
 Projeto Final: resumo/explicação rápida do funcionamento (OBS: os nomes das variaveis são temporarios, vou mudar para nomes com melhor significado depois)
-Uso de variaveis globais(q e x) para que tanto a funçao principal quanto a interrupção possam ver os mesmos valores.
+Uso de variaveis globais(q e x) para que tanto a função principal quanto a interrupção possam ver os mesmos valores.
 Declaração de outras variaveis e configuração do display, do teclado e das interrupções.
+Timer1: conta de 1 em 1 segundo e é usado para contar o tempo do alarme
+Timer2: conta de 1 em 1 segundo e inverte o estado do led
 Significado das variáveis: a› representa as unidades do número; b› representa as dezenas do número; c› representa o número em si( b=1 e a=8 » c=18)
+Inicialização das variaveis a e b sendo iguais a 0 e frase "auxiliar" (aparece na tela durante a seleção do tempo do alarme)
+Dentro do while:
+Mostra o valor inicial das variaveis "a" e "b" na tela
+Estrutura de repetição Do/While para ler o numero digitado no teclado
+Verificação de qual tecla foi apertada, Tecla 3 soma 5 no numero e tecla 1 diminui 5, tecla 2 funciona como um "enter"
+Após apertar o enter, é verificado o valor de c
+A variavel x irá mudar seu valor de acordo com o valor de c. X é uma variavel glorabal que vai representar o tempo escolhido(assim como c porem x ira conversar com a interrupção e c não)
+Timer(alarme) é igado quando se preciona o enter
+Interrupção 1:
+Variavel que é utilizada para contar quantas interrupções aconteceram, quando o número de interrupções for igual a x(tempo do alarme definido anteriormente) o timer 2 é ligado e o timer 1 é desligado
+O LED está sendo usdo para simular um buzzer que irá tocar nos intervalos de tempo pré definidos
+O Timer 2 ficará sendo "executado" até que a tecla de confirmação do remédio seja apertada
+Tecla "*"> remédio tomado: quando for pressionada o timer 2 será desligado, aparecerá a mensagem de remédio tomado, a mensagem inicial com o tempo atual aparecerá novamente e o timer 1 será ligado novamente para que o alarme possa funcionar
