@@ -5,7 +5,7 @@ q=0;
 int main(void) {
     //configure os perifericos
     char tecla;
-    int a,b,c;
+    int a,b,c,escrever,estado;
     
     LCD_Init(); 
     Teclado_Init();
@@ -31,21 +31,44 @@ int main(void) {
    
     a=0;
     b=0;
+    escrever=1;
+    estado=0;
+
     
-    
-    LCD_EscreveFrase("Tempo:(0-40s)");
-    
-    
+      
     while (1) // Loop principal
     {
+        switch(estado)
+        {
+                case 0:
+                    if(escrever==1)
+                    {
+                        LCD_PosicaoCursor(1,7);
+                        LCD_EscreveFrase("Ola");
+                        __delay_ms(1500);
+                        LCD_PosicaoCursor(1,1);
+                        LCD_EscreveFrase("Selecao do tempo");
+                        escrever=0;
+                    }
+                    
+                    if(escrever==0)
+                    {
+                        LCD_PosicaoCursor(2,7);
+                        LCD_EscreveInteiro(a);
+                        LCD_PosicaoCursor(2,8);
+                        LCD_EscreveInteiro(b);
+                        LCD_PosicaoCursor(2,8);
+                    }
+                        
+                        
+
+                    break;
+//        
+        }
         
-        LCD_PosicaoCursor(2,1);
-        LCD_EscreveInteiro(a);
-        LCD_PosicaoCursor(2,2);
-        LCD_EscreveInteiro(b);
-        LCD_PosicaoCursor(2,2);
         
-        do{
+        
+                do{
             tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
             __delay_ms(200);
 
@@ -55,23 +78,23 @@ int main(void) {
         if(tecla=='3')
         {
             b=b+5;
-            LCD_PosicaoCursor(2,2);
+            LCD_PosicaoCursor(2,8);
             if(b>9)
             {
                 b=0;
                 a++;
-                LCD_PosicaoCursor(2,2);
+                LCD_PosicaoCursor(2,8);
             }
         }
         else if(tecla=='1')
         {
             b=b-5;
-            LCD_PosicaoCursor(2,2);
+            LCD_PosicaoCursor(2,8);
             if(b<0)
             {
                 b=5;
                 a--;
-                LCD_PosicaoCursor(2,2);
+                LCD_PosicaoCursor(2,8);
             }
         }
         else if(tecla=='2')
@@ -79,10 +102,10 @@ int main(void) {
             c=a*10+b;
             if(c==0)
             {
-                LCD_LimpaDisplay();
+                LCD_EscreveFrase("                ");
                 LCD_EscreveFrase("Tempo Invalido");
                 __delay_ms(3000);
-                LCD_LimpaDisplay();
+                LCD_EscreveFrase("                ");
                 LCD_EscreveFrase("Tempo:(0-40s)");
 
             }
@@ -119,10 +142,18 @@ int main(void) {
         else if(tecla=='*')
         {
             T2CONbits.TON = 0;
-            LCD_LimpaDisplay();
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("                ");
+            LCD_PosicaoCursor(2,1);
+            LCD_EscreveFrase("                ");
+            LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Remedio tomado<3");
             __delay_ms(3000);
-            LCD_LimpaDisplay();
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("                ");
+            LCD_PosicaoCursor(2,1);
+            LCD_EscreveFrase("                ");
+            LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Tempo:(0-40s)");
             T1CONbits.TON = 1;
         }
@@ -149,6 +180,17 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt(void){
 }
 void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
     
-    LATGbits.LATG2^=1;
+    int i;
+    for(i=0;i<=6;i++)
+    {
+        LATGbits.LATG2=1;
+        __delay_ms(200);
+        LATGbits.LATG2=0;
+        __delay_ms(200);
+        
+    }
     IFS0bits.T2IF = 0;
+    T1CONbits.TON = 1;
+    T2CONbits.TON = 0;
 }
+
