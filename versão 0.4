@@ -1,4 +1,37 @@
-ISBbits.TRISB4=1;
+    //void emergencia (void);
+int q,x;
+q=0;
+char tecla;
+
+ // Funcao principal
+int main(void) {
+    //configure os perifericos
+    
+    int a,b,c,escrever,estado;
+    
+    LCD_Init(); 
+    Teclado_Init();
+    LCD_LimpaDisplay(); 
+    
+    TRISGbits.TRISG2=0; 
+    LATGbits.LATG2 = 0; 
+    T1CON=0;
+    TMR1=0;
+    PR1 = 31249;
+    T1CON = 0x0020;
+    IPC0bits.T1IP = 1;
+    IFS0bits.T1IF = 0;
+    
+    
+    T2CON=0;
+    TMR2=0;
+    PR2 = 31249;
+    T2CON = 0x0020;
+    IPC1bits.T2IP = 2;
+    IFS0bits.T2IF = 0;
+    
+    AD1PCFGbits.PCFG4=1;
+    TRISBbits.TRISB4=1;
     
     RPINR0bits.INT1R = 28;
     
