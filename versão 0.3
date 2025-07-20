@@ -1,34 +1,15 @@
-int q,x;
-q=0;
-
- // Funcao principal
-int main(void) {
-    //configure os perifericos
-    char tecla;
-    int a,b,c,escrever,estado;
+ISBbits.TRISB4=1;
     
-    LCD_Init(); 
-    Teclado_Init();
-    LCD_LimpaDisplay(); 
+    RPINR0bits.INT1R = 28;
     
-    TRISGbits.TRISG2=0; 
-    LATGbits.LATG2 = 0; 
-    T1CON=0;
-    TMR1=0;
-    PR1 = 31249;
-    T1CON = 0x0020;
-    IPC0bits.T1IP = 1;
-    IFS0bits.T1IF = 0;
-    IEC0bits.T1IE = 1;
+    INTCON2bits.INT1EP = 1;
+    IFS1bits.INT1IF = 0;
+    IPC5bits.INT1IP = 3;
     
-    T2CON=0;
-    TMR2=0;
-    PR2 = 31249;
-    T2CON = 0x0020;
-    IPC1bits.T2IP = 2;
-    IFS0bits.T2IF = 0;
-    IEC0bits.T2IE = 1;    
-   
+    IEC1bits.INT1IE = 1;
+    IEC0bits.T1IE = 1;    
+    IEC0bits.T2IE = 1;
+    
     a=0;
     b=0;
     escrever=1;
@@ -53,11 +34,11 @@ int main(void) {
                     
                     if(escrever==0)
                     {
-                        LCD_PosicaoCursor(2,7);
+                        LCD_PosicaoCursor(2,8);
                         LCD_EscreveInteiro(a);
-                        LCD_PosicaoCursor(2,8);
+                        LCD_PosicaoCursor(2,9);
                         LCD_EscreveInteiro(b);
-                        LCD_PosicaoCursor(2,8);
+                        LCD_PosicaoCursor(2,9);
                     }
                         
                         
@@ -78,23 +59,23 @@ int main(void) {
         if(tecla=='3')
         {
             b=b+5;
-            LCD_PosicaoCursor(2,8);
+            LCD_PosicaoCursor(2,9);
             if(b>9)
             {
                 b=0;
                 a++;
-                LCD_PosicaoCursor(2,8);
+                LCD_PosicaoCursor(2,9);
             }
         }
         else if(tecla=='1')
         {
             b=b-5;
-            LCD_PosicaoCursor(2,8);
+            LCD_PosicaoCursor(2,9);
             if(b<0)
             {
                 b=5;
                 a--;
-                LCD_PosicaoCursor(2,8);
+                LCD_PosicaoCursor(2,9);
             }
         }
         else if(tecla=='2')
@@ -106,7 +87,7 @@ int main(void) {
                 LCD_EscreveFrase("Tempo Invalido");
                 __delay_ms(3000);
                 LCD_EscreveFrase("                ");
-                LCD_EscreveFrase("Tempo:(0-40s)");
+                LCD_EscreveFrase("Tempo atual:");
 
             }
             switch(c)
@@ -144,17 +125,15 @@ int main(void) {
             T2CONbits.TON = 0;
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("                ");
-            LCD_PosicaoCursor(2,1);
-            LCD_EscreveFrase("                ");
+            LCD_PosicaoCursor(2,8);
+            LCD_EscreveFrase("  ");
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Remedio tomado<3");
             __delay_ms(3000);
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("                ");
-            LCD_PosicaoCursor(2,1);
-            LCD_EscreveFrase("                ");
             LCD_PosicaoCursor(1,1);
-            LCD_EscreveFrase("Tempo:(0-40s)");
+            LCD_EscreveFrase("Tempo atual:");
             T1CONbits.TON = 1;
         }
        
@@ -183,10 +162,10 @@ void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
     int i;
     for(i=0;i<=6;i++)
     {
-        LATGbits.LATG2=1;
+        LATGbits.LATG2^=1;
         __delay_ms(200);
-        LATGbits.LATG2=0;
-        __delay_ms(200);
+//        LATGbits.LATG2=0;
+//        __delay_ms(200);
         
     }
     IFS0bits.T2IF = 0;
@@ -194,3 +173,53 @@ void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
     T2CONbits.TON = 0;
 }
 
+void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
+{
+//    void emergencia (void);
+    int i;
+    T1CONbits.TON=0;
+    T2CONbits.TON=0;
+    LATGbits.LATG2=1;
+    for(i=0;i<10;i++)
+    {
+        LCD_PosicaoCursor(1,1);
+        LCD_EscreveFrase("                ");
+        LCD_PosicaoCursor(2,8);
+        LCD_EscreveFrase("  ");
+        LCD_PosicaoCursor(1,1);
+        LCD_EscreveFrase("EMERGENCIA!!!");
+        __delay_ms(1500);
+    }
+    
+    T1CONbits.TON=1;
+    T2CONbits.TON=1;
+    LATGbits.LATG2=0;
+    IEC1bits.INT1IE = 0;
+
+
+}
+
+//void emergencia (void)
+//{
+//        T1CONbits.TON=0;
+//    T2CONbits.TON=0;
+//    LATGbits.LATG2=1;
+//    while(tecla!='5')
+//    {
+//        LCD_PosicaoCursor(1,1);
+//        LCD_EscreveFrase("                ");
+//        LCD_PosicaoCursor(2,8);
+//        LCD_EscreveFrase("  ");
+//        LCD_PosicaoCursor(1,1);
+//        LCD_EscreveFrase("EMERGENCIA!!!");
+//        __delay_ms(1500);
+//    }
+//    
+//    T1CONbits.TON=1;
+//    T2CONbits.TON=1;
+//    LATGbits.LATG2=0;
+//    IEC1bits.INT1IE = 0;
+//
+//
+//}
+//
