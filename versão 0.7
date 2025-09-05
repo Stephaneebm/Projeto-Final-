@@ -91,7 +91,7 @@ int main(void) {
     
     INTCON2bits.INT1EP = 1;
     IFS1bits.INT1IF = 0;
-    IPC5bits.INT1IP = 3;
+    IPC5bits.INT1IP = 5;
     
     IEC1bits.INT1IE = 1;
     IEC0bits.T1IE = 1;    
@@ -180,7 +180,7 @@ int main(void) {
             {
                 LCD_EscreveFrase("                ");
                 LCD_EscreveFrase("Tempo Invalido");
-                __delay_ms(3000);
+                __delay_ms(2000);
                 LCD_EscreveFrase("                ");
                 LCD_EscreveFrase("Tempo atual:");
 
@@ -226,7 +226,7 @@ int main(void) {
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Remedio tomado<3");
             
-            __delay_ms(3000);
+            __delay_ms(2000);
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("                ");
             LCD_PosicaoCursor(1,1);
@@ -287,8 +287,8 @@ void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
         LATGbits.LATG2^=1;
         __delay_ms(200);
         
-            tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
-            __delay_ms(200);
+        tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
+        __delay_ms(200);
 
         
     }while(tecla!='*');
@@ -307,7 +307,7 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
     T1CONbits.TON=0;
     T2CONbits.TON=0;
     LATGbits.LATG2=1;
-    for(i=0;i<10;i++)
+    do
     {
         LCD_PosicaoCursor(1,1);
         LCD_EscreveFrase("                ");
@@ -315,8 +315,16 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
         LCD_EscreveFrase("  ");
         LCD_PosicaoCursor(1,1);
         LCD_EscreveFrase("EMERGENCIA!!!");
-        __delay_ms(1500);
-    }
+        __delay_ms(200);
+        tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
+        __delay_ms(200);
+    }while(tecla!='8');
+    
+    LCD_PosicaoCursor(1,1);
+    LCD_EscreveFrase("            ");
+    LCD_PosicaoCursor(1,1);
+    LCD_EscreveFrase("Tempo atual:");
+            
     
     T1CONbits.TON=1;
     T2CONbits.TON=1;
