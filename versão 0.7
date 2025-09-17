@@ -30,7 +30,7 @@
 
 #endif
 
-//void emergencia (void);
+
 char dia,tecla;
 int q=0,x,s=0;
 
@@ -40,15 +40,20 @@ int main(void) {
     
     int a,b,c,escrever,estado;
     
+    UART1_Initialize();    //configuração da 'tela preta'
     LCD_Init(); 
     Teclado_Init();
     LCD_LimpaDisplay(); 
     
+    
+    
     TRISGbits.TRISG2=0; 
-    LATGbits.LATG2 = 0; 
+    LATGbits.LATG2 = 0;
+    TRISDbits.TRISD0=0; 
+    LATDbits.LATD0 = 0;
     
     TRISFbits.TRISF5=0;   //pino RB0 como saída
-    RPOR8bits.RP17R=18;   //funcionalidade 18 (COMPARE 1 Tabela 10-3) - pino RP0 
+    RPOR8bits.RP16R=18;   //funcionalidade 18 (COMPARE 1 Tabela 10-3) - pino RP0 
     // configurando o Timer 1 (pois vou escolher ele para funcionar com o COMPARE)
     T4CON=0;                                    //reset do TMR4
     
@@ -174,7 +179,6 @@ int main(void) {
         }
         else if(tecla=='2')
         {
-            
             c=a*10+b;
             if(c==0)
             {
@@ -212,7 +216,6 @@ int main(void) {
                 case 40:
                     x=40;
                     break;
-                        
             }
             T1CONbits.TON = 1;            
         }
@@ -225,7 +228,8 @@ int main(void) {
             LCD_EscreveFrase("  ");
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Remedio tomado<3");
-            
+            printf("\n\rRailla tomou o remedio");
+            LATDbits.LATD0 = 0;
             __delay_ms(2000);
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("                ");
@@ -255,13 +259,10 @@ int main(void) {
             LCD_EscreveFrase("Tempo atual:");
             T1CONbits.TON = 1;
         }
-        
-       
     }
 
     return -1;
 }
-
 
 // Interrupt function 
 void __attribute__((interrupt,no_auto_psv)) _T1Interrupt(void){
@@ -270,29 +271,33 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt(void){
     IFS0bits.T1IF = 0;
     if(q==x)
     {
+        LATDbits.LATD0 = 1;
         T2CONbits.TON = 1;    
         T1CONbits.TON = 0;
         
         q=0;
-        
     }
-      
+    
 }
 void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
     
+    int i=0;
     IEC0bits.OC1IE=1;
     T4CONbits.TON=1;
     do
     {
         LATGbits.LATG2^=1;
         __delay_ms(200);
-        
+        i++;
         tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
         __delay_ms(200);
+        if(i==7)
+        {
+            printf("\n\rOla, Railla ainda nao tomou o remedio do horario.");
+        }
 
-        
     }while(tecla!='*');
-    
+    LATDbits.LATD0 = 0;
     IFS0bits.T2IF = 0;
     T1CONbits.TON = 1;
     T2CONbits.TON = 0;
@@ -301,14 +306,14 @@ void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
 
 void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
 {
-   
-
-    int i;
+    
     T1CONbits.TON=0;
     T2CONbits.TON=0;
     LATGbits.LATG2=1;
     do
     {
+        LATDbits.LATD0 = 1;
+        printf("\n\rEMERGENCIA COM RAILLA!!!");
         LCD_PosicaoCursor(1,1);
         LCD_EscreveFrase("                ");
         LCD_PosicaoCursor(2,8);
@@ -319,18 +324,17 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
         tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
         __delay_ms(200);
     }while(tecla!='8');
-    
+    printf("\n\rEmergencia de Railla resolvida:)");
     LCD_PosicaoCursor(1,1);
     LCD_EscreveFrase("            ");
     LCD_PosicaoCursor(1,1);
     LCD_EscreveFrase("Tempo atual:");
-            
     
+    LATDbits.LATD0 = 0;
     T1CONbits.TON=1;
     T2CONbits.TON=1;
     LATGbits.LATG2=0;
     IEC1bits.INT1IE = 0;
-
 
 }
 void __attribute__((interrupt,no_auto_psv)) _OC1Interrupt(void)
