@@ -1,4 +1,4 @@
-#include <p24FJ256GB106.h>
+#include <p24FJ256GA106.h>
 
 #include "user.h"
 #include "My_UART1.h"
@@ -53,14 +53,16 @@ int main(void) {
     Teclado_Init();
     LCD_LimpaDisplay(); 
     
+    TRISDbits.TRISD1=1;         //botão
+    TRISDbits.TRISD5=0;         //led
+    TRISDbits.TRISD10=0;        //buzzer
+    TRISDbits.TRISD0=0;         //servo
     
+    LATDbits.LATD5 = 0;         
+    LATDbits.LATD10 = 0;        
     
-    TRISDbits.TRISD5=0; 
-    LATDbits.LATD5 = 0;
-    TRISDbits.TRISD10=0; 
-    LATDbits.LATD10 = 0;
+    RPINR0bits.INT1R = 24;      //remapeamento interrupção botão
     
-    TRISDbits.TRISD0=0;   //pino RD0 como saída
     RPOR5bits.RP11R=18;   //funcionalidade 18 (COMPARE 1 Tabela 10-3) - pino RP0 
     // configurando o Timer 1 (pois vou escolher ele para funcionar com o COMPARE)
     T4CON=0;                                    //reset do TMR4
@@ -79,7 +81,7 @@ int main(void) {
     IPC0bits.OC1IP=3;
     IFS0bits.OC1IF=0;
     
-    IEC0bits.OC1IE=1;
+    
     
     
     T1CON=0;
@@ -97,10 +99,6 @@ int main(void) {
     IPC1bits.T2IP = 2;
     IFS0bits.T2IF = 0;
     
-    AD1PCFGbits.PCFG4=1;
-    TRISBbits.TRISB4=1;
-    
-    RPINR0bits.INT1R = 28;
     
     INTCON2bits.INT1EP = 1;
     IFS1bits.INT1IF = 0;
@@ -109,6 +107,7 @@ int main(void) {
     IEC1bits.INT1IE = 1;
     IEC0bits.T1IE = 1;    
     IEC0bits.T2IE = 1;
+    IEC0bits.OC1IE=1;
     
     a=0;
     b=0;
