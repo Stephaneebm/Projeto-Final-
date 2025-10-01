@@ -1,5 +1,3 @@
-#include <p24FJ256GA106.h>
-
 #include "user.h"
 #include "My_UART1.h"
 #include "Teclado3x4.h"
@@ -86,16 +84,16 @@ int main(void) {
     
     T1CON=0;
     TMR1=0;
-    PR1 = 31249;
-    T1CON = 0x0020;
+    PR1 = 62499;
+    T1CON = 0x0030;
     IPC0bits.T1IP = 1;
     IFS0bits.T1IF = 0;
     
     
     T2CON=0;
     TMR2=0;
-    PR2 = 31249;
-    T2CON = 0x0020;
+    PR2 = 62499;
+    T2CON = 0x0030;
     IPC1bits.T2IP = 2;
     IFS0bits.T2IF = 0;
     
@@ -235,7 +233,7 @@ int main(void) {
             LCD_EscreveFrase("  ");
             LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Remedio tomado<3");
-            printf("\n\rRailla tomou o remedio");
+            //printf("\n\rRailla tomou o remedio");
             LATDbits.LATD10 = 0;
             __delay_ms(2000);
             LCD_PosicaoCursor(1,1);
@@ -298,10 +296,10 @@ void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
         i++;
         tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
         __delay_ms(200);
-        if(i==7)
-        {
-            printf("\n\rOla, Railla ainda nao tomou o remedio do horario.");
-        }
+//        if(i==7)
+//        {
+//            printf("\n\rOla, Railla ainda nao tomou o remedio do horario.");
+//        }
 
     }while(tecla!='*');
     LATDbits.LATD10 = 0;
@@ -320,7 +318,7 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
     do
     {
         LATDbits.LATD10 = 1; //BUZZER
-        printf("\n\rEMERGENCIA COM RAILLA!!!");
+        //printf("\n\rEMERGENCIA COM RAILLA!!!");
         LCD_PosicaoCursor(1,1);
         LCD_EscreveFrase("                ");
         LCD_PosicaoCursor(2,8);
@@ -331,7 +329,7 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
         tecla = Teclado_Varredura();       //chamando a função para ler a tecla pressionada do teclado
         __delay_ms(200);
     }while(tecla!='8');
-    printf("\n\rEmergencia de Railla resolvida:)");
+    //printf("\n\rEmergencia de Railla resolvida:)");
     LCD_PosicaoCursor(1,1);
     LCD_EscreveFrase("            ");
     LCD_PosicaoCursor(1,1);
