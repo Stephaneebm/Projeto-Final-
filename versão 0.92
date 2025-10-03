@@ -1,3 +1,4 @@
+
 #include "user.h"
 #include "My_UART1.h"
 #include "Teclado3x4.h"
@@ -36,15 +37,25 @@
 #else
     #define PS			0		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
 #endif
+#ifdef _BOOTLOADER  
+    #define PR			62499		// Fclk = 32 MHz (configurada bo bootloader)
+#else
+    #define PR			31249		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
+#endif
+#ifdef _BOOTLOADER  
+    #define PST			0x0030		// Fclk = 32 MHz (configurada bo bootloader)
+#else
+    #define PST			0x0020		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
+#endif
 
 char dia,tecla;
-int q=0,x,s=0;
+int q=0,x,a,b,s=0;
 
  // Funcao principal
 int main(void) {
     //configure os perifericos
     
-    int a,b,c,escrever,estado;
+    int c,escrever,estado;
     
     UART1_Initialize();    //configuração da 'tela preta'
     LCD_Init(); 
@@ -84,16 +95,16 @@ int main(void) {
     
     T1CON=0;
     TMR1=0;
-    PR1 = 62499;
-    T1CON = 0x0030;
+    PR1 = PR;
+    T1CON = PST;
     IPC0bits.T1IP = 1;
     IFS0bits.T1IF = 0;
     
     
     T2CON=0;
     TMR2=0;
-    PR2 = 62499;
-    T2CON = 0x0030;
+    PR2 = PR;
+    T2CON = PST;
     IPC1bits.T2IP = 2;
     IFS0bits.T2IF = 0;
     
@@ -331,13 +342,18 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
     }while(tecla!='8');
     //printf("\n\rEmergencia de Railla resolvida:)");
     LCD_PosicaoCursor(1,1);
-    LCD_EscreveFrase("            ");
+    LCD_EscreveFrase("             ");
     LCD_PosicaoCursor(1,1);
     LCD_EscreveFrase("Tempo atual:");
+    LCD_PosicaoCursor(2,8);
+    LCD_EscreveInteiro(a);
+    LCD_PosicaoCursor(2,9);
+    LCD_EscreveInteiro(b);
+    LCD_PosicaoCursor(2,9);
     
     LATDbits.LATD10 = 0;
     T1CONbits.TON=1;
-    T2CONbits.TON=1;
+    T2CONbits.TON=0;
     LATDbits.LATD5=0;
     IEC1bits.INT1IE = 0;
 
