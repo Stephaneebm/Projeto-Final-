@@ -48,7 +48,7 @@
     #define PST			0x0020		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
 #endif
 
-char dia,tecla;
+char dia,bau,tecla;
 int q=0,x,a,b,servo=0,i=0,led=0,emergencia=0,s=0;
 
  // Funcao principal
@@ -113,7 +113,7 @@ int main(void) {
     IFS1bits.INT1IF = 0;
     IPC5bits.INT1IP = 5;
     
-//    IEC1bits.INT1IE = 1;
+    IEC1bits.INT1IE = 1;
     IEC0bits.T1IE = 1;    
     IEC0bits.OC1IE=1;
     
@@ -138,7 +138,7 @@ int main(void) {
             LCD_EscreveFrase("Dia:");
             do{
                 dia = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
-                
+                bau=dia;
 
             }while(dia<'1');
             
@@ -161,8 +161,8 @@ int main(void) {
         
         if(led==1)
         {
-            //LATDbits.LATD10 = 1;
-            servo=1;
+            LATDbits.LATD10 = 1;
+            dia=bau;
             T1CONbits.TON = 0;
             
             IEC0bits.OC1IE=1;
@@ -181,13 +181,13 @@ int main(void) {
 //                }
 
             }while(tecla!='*');
-//            OC1R=5000;
+            dia='8';
 //            __delay_ms(200);
             i=0;
             LATDbits.LATD10=0;
             LATDbits.LATD5=0;
             led=0;
-//            LATDbits.LATD10 = 0;
+            LATDbits.LATD10 = 0;
 
             T1CONbits.TON = 1;
             
@@ -198,32 +198,33 @@ int main(void) {
         {
             LCD_PosicaoCursor(2,1);
             LCD_EscreveFrase("<3");
-//            do
-//            {
-                //LATDbits.LATD10 = 1; //BUZZER
-//                //printf("\n\rEMERGENCIA COM RAILLA!!!");
-//                LCD_PosicaoCursor(1,1);
-//                LCD_EscreveFrase("                ");
-//                LCD_PosicaoCursor(2,8);
-//                LCD_EscreveFrase("  ");
+            do
+            {
+                LATDbits.LATD10 = 1; //BUZZER
+                //printf("\n\rEMERGENCIA COM RAILLA!!!");
+                LCD_PosicaoCursor(1,1);
+                LCD_EscreveFrase("                ");
+                LCD_PosicaoCursor(2,8);
+                LCD_EscreveFrase("  ");
                 LCD_PosicaoCursor(1,1);
                 LCD_EscreveFrase("EMERGENCIA!!!   ");
                 __delay_ms(1000);
-//                __delay_ms(200);
-//                tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
-//                __delay_ms(200);
-//            }while(tecla!='8');
+                
+                tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
+                __delay_ms(200);
+            }while(tecla!='8');
             //printf("\n\rEmergencia de Railla resolvida:)");
 //            LCD_PosicaoCursor(1,1);
 //            LCD_EscreveFrase("             ");
                 LATDbits.LATD10 = 0;
+                LATDbits.LATD5 = 0;
                 LCD_PosicaoCursor(1,1);
             LCD_EscreveFrase("Tempo atual:");
-//            LCD_PosicaoCursor(2,8);
-//            LCD_EscreveInteiro(a);
-//            LCD_PosicaoCursor(2,9);
-//            LCD_EscreveInteiro(b);
-//            LCD_PosicaoCursor(2,9);
+            LCD_PosicaoCursor(2,8);
+            LCD_EscreveInteiro(a);
+            LCD_PosicaoCursor(2,9);
+            LCD_EscreveInteiro(b);
+            LCD_PosicaoCursor(2,9);
             emergencia=0;
 //            LATDbits.LATD10 = 0;
             T1CONbits.TON=1;
@@ -368,46 +369,14 @@ void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
 {
     
     T1CONbits.TON=0;
-//    T2CONbits.TON=0;
     LATDbits.LATD5=1;
     emergencia=1;
-//    do
-//    {
-//        LATDbits.LATD10 = 1; //BUZZER
-//        //printf("\n\rEMERGENCIA COM RAILLA!!!");
-//        LCD_PosicaoCursor(1,1);
-//        LCD_EscreveFrase("                ");
-//        LCD_PosicaoCursor(2,8);
-//        LCD_EscreveFrase("  ");
-//        LCD_PosicaoCursor(1,1);
-//        LCD_EscreveFrase("EMERGENCIA!!!");
-//        __delay_ms(200);
-//        tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
-//        __delay_ms(200);
-//    }while(tecla!='8');
-//    //printf("\n\rEmergencia de Railla resolvida:)");
-//    LCD_PosicaoCursor(1,1);
-//    LCD_EscreveFrase("             ");
-//    LCD_PosicaoCursor(1,1);
-//    LCD_EscreveFrase("Tempo atual:");
-//    LCD_PosicaoCursor(2,8);
-//    LCD_EscreveInteiro(a);
-//    LCD_PosicaoCursor(2,9);
-//    LCD_EscreveInteiro(b);
-//    LCD_PosicaoCursor(2,9);
-//    
-//    LATDbits.LATD10 = 0;
-//    T1CONbits.TON=1;
-//    T2CONbits.TON=0;
-//    LATDbits.LATD5=0;
     IFS1bits.INT1IF = 0;
 
 }
 void __attribute__((interrupt,no_auto_psv)) _OC1Interrupt(void)
 {
-    if(servo==1)
-    {
-        switch (dia)
+    switch (dia)
         {
             case '1':
                 OC1R=729;
@@ -430,17 +399,10 @@ void __attribute__((interrupt,no_auto_psv)) _OC1Interrupt(void)
             case'7':
                 OC1R=5000;
                 break;
+            case '8':
+                OC1R=729;
+                break;
         }
-    }
-    else
-    {
-        OC1R=5000;
-    }
-    
-//    if(tecla=='*')
-//    {
-//        OC1R=5000;
-//    }
-    
+
     IFS0bits.OC1IF=0;
 }
