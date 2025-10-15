@@ -164,7 +164,8 @@ int main(void) {
             LATDbits.LATD10 = 1;
             dia=bau;
             T1CONbits.TON = 0;
-            
+//            UART1_Write('0');
+//            UART1_Write("7hhhhhh");
             IEC0bits.OC1IE=1;
             T5CONbits.TON=1;
             do
@@ -175,13 +176,15 @@ int main(void) {
                 
                 tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
                 __delay_ms(200);
-//                if(i==7)
-//                {
-//                    printf("\n\rOla, Railla ainda nao tomou o remedio do horario.");
-//                }
+                if(i==7)
+                {
+                    printf("\nOla, Railla ainda nao tomou o remedio do horario.");
+                }
 
             }while(tecla!='*');
             dia='8';
+                        printf("\nRailla tomou o remedio");
+
 //            __delay_ms(200);
             i=0;
             LATDbits.LATD10=0;
@@ -191,7 +194,6 @@ int main(void) {
 
             T1CONbits.TON = 1;
             
-//            T2CONbits.TON = 0;
         }
         
         if(emergencia==1)
@@ -201,7 +203,7 @@ int main(void) {
             do
             {
                 LATDbits.LATD10 = 1; //BUZZER
-                //printf("\n\rEMERGENCIA COM RAILLA!!!");
+                printf("\nEMERGENCIA COM RAILLA!!!");
                 LCD_PosicaoCursor(1,1);
                 LCD_EscreveFrase("                ");
                 LCD_PosicaoCursor(2,8);
@@ -213,7 +215,7 @@ int main(void) {
                 tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
                 __delay_ms(200);
             }while(tecla!='8');
-            //printf("\n\rEmergencia de Railla resolvida:)");
+            printf("\nEmergencia de Railla resolvida:)");
 //            LCD_PosicaoCursor(1,1);
 //            LCD_EscreveFrase("             ");
                 LATDbits.LATD10 = 0;
@@ -316,7 +318,7 @@ int main(void) {
             LCD_PosicaoCursor(2,8);
             LCD_EscreveFrase("  ");
             
-            //printf("\n\rRailla tomou o remedio");
+//            printf("\n\rRailla tomou o remedio");
             
             __delay_ms(2000);
             LCD_PosicaoCursor(1,1);
