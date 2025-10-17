@@ -149,7 +149,6 @@ int main(void) {
             LCD_EscreveFrase("Selecao do tempo");
             escrever=0;
         }
-
         if(escrever==0)
         {
             LCD_PosicaoCursor(2,8);
@@ -161,6 +160,7 @@ int main(void) {
         
         if(led==1)
         {
+            
             LATDbits.LATD10 = 1;
             dia=bau;
             T1CONbits.TON = 0;
@@ -183,9 +183,8 @@ int main(void) {
 
             }while(tecla!='*');
             dia='8';
-                        printf("\nRailla tomou o remedio");
+            printf("\nRailla tomou o remedio");
 
-//            __delay_ms(200);
             i=0;
             LATDbits.LATD10=0;
             LATDbits.LATD5=0;
@@ -198,8 +197,6 @@ int main(void) {
         
         if(emergencia==1)
         {
-            LCD_PosicaoCursor(2,1);
-            LCD_EscreveFrase("<3");
             do
             {
                 LATDbits.LATD10 = 1; //BUZZER
@@ -216,33 +213,26 @@ int main(void) {
                 __delay_ms(200);
             }while(tecla!='8');
             printf("\nEmergencia de Railla resolvida:)");
-//            LCD_PosicaoCursor(1,1);
-//            LCD_EscreveFrase("             ");
-                LATDbits.LATD10 = 0;
-                LATDbits.LATD5 = 0;
-                LCD_PosicaoCursor(1,1);
-            LCD_EscreveFrase("Tempo atual:");
+
+            LATDbits.LATD10 = 0;
+            LATDbits.LATD5 = 0;
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("Tempo atual:    ");
             LCD_PosicaoCursor(2,8);
             LCD_EscreveInteiro(a);
             LCD_PosicaoCursor(2,9);
             LCD_EscreveInteiro(b);
             LCD_PosicaoCursor(2,9);
             emergencia=0;
-//            LATDbits.LATD10 = 0;
+
             T1CONbits.TON=1;
-//            T2CONbits.TON=0;
-//            LATDbits.LATD5=0;
+
         }
 
-        
-            tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
-        
-
+        tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
         
         if(tecla=='3')
         {
-            
-            
             b=b+5;
             LCD_PosicaoCursor(2,9);
             if(b>9)
@@ -271,9 +261,7 @@ int main(void) {
                 
                 LCD_EscreveFrase("Tempo Invalido  ");
                 __delay_ms(2000);
-                
                 LCD_EscreveFrase("Tempo atual:    ");
-
             }
 
             switch(c)
@@ -318,7 +306,7 @@ int main(void) {
             LCD_PosicaoCursor(2,8);
             LCD_EscreveFrase("  ");
             
-//            printf("\n\rRailla tomou o remedio");
+            printf("\nRailla tomou o remedio :)");
             
             __delay_ms(2000);
             LCD_PosicaoCursor(1,1);
@@ -334,19 +322,17 @@ int main(void) {
             LCD_EscreveFrase("Dia:            ");
             LCD_PosicaoCursor(2,8);
             LCD_EscreveFrase("  ");
+            LCD_PosicaoCursor(1,5);
             
-            do{
+            do
+            {
                 dia = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
-                
-
             }while(dia<'1');
             
             LCD_EscreveCaractere(dia);
             __delay_ms(1000);
             LCD_PosicaoCursor(1,1);
-            LCD_EscreveFrase("   ");
-            LCD_PosicaoCursor(1,1);
-            LCD_EscreveFrase("Tempo atual:");
+            LCD_EscreveFrase("Tempo atual:    ");
             T1CONbits.TON = 1;
         }
     }
@@ -365,16 +351,12 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt(void){     //alarme
     }
     IFS0bits.T1IF = 0;
 }
-
-
 void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)
 {
-    
     T1CONbits.TON=0;
     LATDbits.LATD5=1;
     emergencia=1;
     IFS1bits.INT1IF = 0;
-
 }
 void __attribute__((interrupt,no_auto_psv)) _OC1Interrupt(void)
 {
@@ -405,6 +387,5 @@ void __attribute__((interrupt,no_auto_psv)) _OC1Interrupt(void)
                 OC1R=729;
                 break;
         }
-
     IFS0bits.OC1IF=0;
 }
