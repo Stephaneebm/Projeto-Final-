@@ -1,0 +1,350 @@
+//versão final
+#include "user.h"
+#include "My_UART1.h"
+#include "Teclado3x4.h"
+#include "displayLCD_.h"
+
+//inlcuir outras bibliotecas necessarias
+
+
+//Indicacao do clock utilizado pelo uC para o compilador
+// Verificar o uso do define _BOOTLOADER na user.h
+#ifndef _BOOTLOADER  
+// CONFIG2
+#pragma config POSCMOD = XT   // XT Oscillator mode selected
+#pragma config OSCIOFNC = ON  // OSC2/CLKO/RC15 as as port I/O (RC15)
+#pragma config FCKSM = CSDCMD // Clock Switching and Monitor disabled
+#pragma config FNOSC = PRI    // Primary Oscillator (XT, HS, EC)
+#pragma config IESO = ON      // Int Ext Switch Over Mode enabled
+
+// CONFIG1
+#pragma config WDTPS = PS32768 // Watchdog Timer Postscaler (1:32,768)
+#pragma config FWPSA = PR128   // WDT Prescaler (1:128)
+#pragma config WINDIS = ON     // Watchdog Timer Window Mode disabled
+#pragma config FWDTEN = OFF    // Watchdog Timer disabled
+#pragma config ICS = PGx2      // Emulator/debugger uses EMUC2/EMUD2
+#pragma config GWRP = OFF      // Writes to program memory allowed
+#pragma config GCP = OFF       // Code protection is disabled
+#pragma config JTAGEN = OFF    // JTAG port is disabled
+
+#endif
+
+
+
+//Indicacao do clock utilizado pelo uC para o compilador
+#ifdef _BOOTLOADER  //muda a pré escala do TIMER do COMPARE para o ISIS ou não
+    #define PS			1		// Fclk = 32 MHz (configurada bo bootloader)
+#else
+    #define PS			0		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
+#endif
+#ifdef _BOOTLOADER  //muda tempo do TIMER para o ISIS ou não
+    #define PR			62499		// Fclk = 32 MHz (configurada bo bootloader)
+#else
+    #define PR			31249		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
+#endif
+#ifdef _BOOTLOADER  //muda a pré escala do TIMER para  ISIS ou não
+    #define PST			0x0030		// Fclk = 32 MHz (configurada bo bootloader)
+#else
+    #define PST			0x0020		// Fclk = 4MHz (usar 4 MHz na simulação do ISIS)
+#endif
+
+char dia,bau,tecla;
+int segundos=0,tempo_alarme,dez,uni,servo=0,i=0,led=0,emergencia=0,s=0;
+
+ // Funcao principal
+int main(void) {
+    //configure os perifericos
+    
+    int escrever,estado;
+    
+    UART1_Initialize();    //configuração da 'tela preta'
+    LCD_Init(); 
+    Teclado_Init();
+    LCD_LimpaDisplay(); 
+    
+    TRISDbits.TRISD1=1;         //botão
+    TRISDbits.TRISD5=0;         //led
+    TRISDbits.TRISD10=0;        //buzzer
+    TRISDbits.TRISD0=0;         //servo
+    
+    LATDbits.LATD5 = 0;         //led começa desligado
+    LATDbits.LATD10 = 0;        //buzzer começa desligado
+    
+    RPINR0bits.INT1R = 24;      //remapeamento interrupção botão
+    
+    RPOR5bits.RP11R=18;   //funcionalidade 18 (COMPARE 1) - pino RP11 
+    T5CON=0;                                    //reset do TMR5 escolhido para funcionar com o COMPARE
+    
+    T5CONbits.TCKPS=PS;                 //PS do TIMER 5  
+    
+    OC1R =625;                            //tempo em alta 
+    OC1RS = 39999;                        //OC1RS limitar a contagem do OC1TMR
+    OC1CON1=0;                            //reset do OC1
+    OC1CON2=0;                            //reset do OC2
+    OC1CON1bits.OCTSEL=0b011;             //TMR5 como temporizador do COMPARE 1
+    OC1CON1bits.OCM=0b110;                //modo PWM
+    OC1CON2bits.SYNCSEL = 0b11111;  
+    OC1TMR = 0;                           //zera o contador do COMPARE         
+    
+    IPC0bits.OC1IP=3;                       //Prioridade do PWM
+    IFS0bits.OC1IF=0;                       //Flag PWM
+    
+//CONFIGURAÇÃO DO TIMER RESPONSÁVEL PELO ALARME 
+    T1CON=0;
+    TMR1=0;
+    PR1 = PR;
+    T1CON = PST;
+    IPC0bits.T1IP = 1;
+    IFS0bits.T1IF = 0;
+    
+//CONFIGURAÇÃO DA INTERRUPÇÃO DO BOTÃO EXTERNO
+    INTCON2bits.INT1EP = 1;
+    IFS1bits.INT1IF = 0;
+    IPC5bits.INT1IP = 5;
+    
+//ENABLES    
+    IEC1bits.INT1IE = 1;
+    IEC0bits.T1IE = 1;    
+    IEC0bits.OC1IE=1;
+    
+    dez=0;
+    uni=0;
+    escrever=1;
+    estado=0;
+    
+    LCD_PosicaoCursor(1,7);
+    LCD_EscreveFrase("Ola");
+    __delay_ms(1500);
+      
+    while (1) // Loop principal
+    {
+        
+        if(escrever==1)
+        {
+            
+            LCD_PosicaoCursor(1,7);
+            LCD_EscreveFrase("   ");
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("Dia:");
+            do{
+                dia = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
+                bau=dia;
+
+            }while(dia<'1');
+            
+            LCD_EscreveCaractere(dia);
+            __delay_ms(1000);
+            LCD_PosicaoCursor(1,1);
+
+            LCD_EscreveFrase("Selecao do tempo");
+            escrever=0;
+        }
+        if(escrever==0)
+        {
+            LCD_PosicaoCursor(2,8);
+            LCD_EscreveInteiro(dez);
+            LCD_PosicaoCursor(2,9);
+            LCD_EscreveInteiro(uni);
+            LCD_PosicaoCursor(2,9);
+        }
+        
+        if(led==1)
+        {
+            
+            LATDbits.LATD10 = 1;                 //Buzzer liga
+            dia=bau;                             //armazena o valor do dia para que não mude o buzzer fora do momento
+            T1CONbits.TON = 0;                   //Interrupção do alarme desliga
+            IEC0bits.OC1IE=1;                    //Interrupção do movimento do buzzer liga
+            T5CONbits.TON=1;                     //Timer do COMPARE 1 liga
+            do
+            {
+                LATDbits.LATD5^=1;               //LED alterna seu estado (pisca)     
+                __delay_ms(200);
+                i++;                             //Vezes que o estado do LED alterna
+                
+                tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
+                __delay_ms(200);
+                if(i==7)                         //Tempo sem resposta após o alarme tocar 
+                {
+                    printf("\nOla, Railla ainda nao tomou o remedio do horario.");          //Mensagem via bluetooth
+                }
+
+            }while(tecla!='*');
+            dia='8';                            //Responsável pela posição do "marco zero"
+            LATDbits.LATD10=0;                  //Buzzer desliga
+            LATDbits.LATD5=0;                   //Led desliga
+            
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("Remedio tomado<3");
+            LCD_PosicaoCursor(2,8);
+            LCD_EscreveFrase("  ");
+            
+            printf("\nRailla tomou o remedio :)");          //Mensagem via bluetooth
+            
+            __delay_ms(2000);
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("Tempo atual:    ");
+
+            i=0;
+            segundos=0;
+            led=0;
+            LATDbits.LATD10 = 0;
+
+            T1CONbits.TON = 1;
+            
+        }
+        
+        if(emergencia==1)
+        {
+            do
+            {
+                LATDbits.LATD10 = 1; //Buzzer liga                printf("\nEMERGENCIA COM RAILLA!!!");       //Mensagem via bluetooth
+
+                printf("\nEMERGENCIA COM RAILLA!!!");       //Mensagem via bluetooth
+                LCD_PosicaoCursor(1,1);
+                LCD_EscreveFrase("                ");
+                LCD_PosicaoCursor(2,8);
+                LCD_EscreveFrase("  ");
+                LCD_PosicaoCursor(1,1);
+                LCD_EscreveFrase("EMERGENCIA!!!   ");
+                __delay_ms(1000);
+                
+                tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
+                __delay_ms(200);
+            }while(tecla!='8');                  //Tecla de confimação que a emergência foi resolvida
+            printf("\nEmergencia de Railla resolvida:)");           //Mensagem via bluetooth
+
+            LATDbits.LATD10 = 0;                //Buzzer desliga
+            LATDbits.LATD5 = 0;                 //LED desliga
+            LCD_PosicaoCursor(1,1);
+            LCD_EscreveFrase("Tempo atual:    ");
+            LCD_PosicaoCursor(2,8);
+            LCD_EscreveInteiro(dez);
+            LCD_PosicaoCursor(2,9);
+            LCD_EscreveInteiro(uni);
+            LCD_PosicaoCursor(2,9);
+            emergencia=0;
+
+            T1CONbits.TON=1;
+
+        }
+
+        tecla = Teclado_Leitura();       //chamando a função para ler a tecla pressionada do teclado
+        
+        switch (tecla)
+        {
+            case '3':                               //Aumenta o tempo do alarme
+                uni=uni+5;
+                LCD_PosicaoCursor(2,9);
+                if(uni>9)
+                {
+                    uni=0;
+                    dez++;
+                    LCD_PosicaoCursor(2,9);
+                }
+                break;
+            case '1':                               //Diminui o tempo do alarme
+                uni=uni-5;
+                LCD_PosicaoCursor(2,9);
+                if(uni<0)
+                {
+                    uni=5;
+                    dez--;
+                    LCD_PosicaoCursor(2,9);
+                }
+                break;
+            case '2':                               //Confirmar o tempo escolhido para o alarme
+                tempo_alarme=dez*10+uni;
+                if(tempo_alarme==0)
+                {
+                    LCD_PosicaoCursor(1,1);
+                    LCD_EscreveFrase("Tempo Invalido  ");
+                    __delay_ms(2000);
+                    LCD_PosicaoCursor(1,1);
+                    LCD_EscreveFrase("Tempo atual:    ");
+                }
+                T1CONbits.TON = 1;
+                break;
+            case '#':                               //Trocar o dia de tomar remédio
+                T1CONbits.TON = 0;
+                LCD_PosicaoCursor(1,1);
+                LCD_EscreveFrase("Dia:            ");
+                LCD_PosicaoCursor(2,8);
+                LCD_EscreveFrase("  ");
+                LCD_PosicaoCursor(1,5);
+
+                do
+                {
+                    dia = Teclado_Leitura();       //Chamando a função para ler a tecla pressionada do teclado
+                }while(dia<'1');
+                bau=dia;
+                LCD_EscreveCaractere(dia);
+                __delay_ms(1000);                  //Temp para ser possivel ler o que aparece no visor
+                LCD_PosicaoCursor(1,1);
+                LCD_EscreveFrase("Tempo atual:    ");
+                T1CONbits.TON = 1;
+                break;
+        }
+    }
+
+    return -1;
+}
+
+// FUNÇÃO RESPONSÁVEL POR CONTAR O TEMPO DO ALARME E ATIVÁ-LO
+void __attribute__((interrupt,no_auto_psv)) _T1Interrupt(void){     
+    segundos++; 
+    
+    if(segundos==tempo_alarme)
+    {
+        led=1;                          //Liga flag de ativação do LED
+        segundos=0;
+    }
+    IFS0bits.T1IF = 0;
+}
+
+/**********************************************************************
+  FUNÇÃO RESPONSÁVEL POR LIGAR A EMERGÊNCIA QUANDO O BOTÃO É APERTADO
+**********************************************************************/ 
+void __attribute__((interrupt,no_auto_psv)) _INT1Interrupt(void)    
+{
+    T1CONbits.TON=0;
+    LATDbits.LATD5=1;
+    emergencia=1;                       //Liga a flag de ativação da emergência
+    IFS1bits.INT1IF = 0;
+}
+
+/********************************************************************
+   FUNÇÃO RESPONSÁVEL POR MUDAR A POSIÇÃO DO SERVP MOTOR DE ACORDO 
+   COM O O DIA SELECIONADO
+********************************************************************/ 
+void __attribute__((interrupt,no_auto_psv)) _OC1Interrupt(void)
+{
+    switch (dia)
+        {
+            case '1':
+                OC1R=1238;
+                break;
+            case '2':
+                OC1R=1775;
+                break;
+            case '3':
+                OC1R=2313;
+                break;
+            case'4':
+                OC1R=2950;
+                break;
+            case'5':
+                OC1R=3600;
+                break;
+            case'6':
+                OC1R=4255;
+                break;
+            case'7':
+                OC1R=4763;
+                break;
+            case '8':           //"Marco zero"
+                OC1R=700;
+                break;
+        }
+    IFS0bits.OC1IF=0;
+}
