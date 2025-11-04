@@ -49,7 +49,7 @@
 #endif
 
 char dia,bau,tecla;
-int segundos=0,tempo_alarme,dez,uni,servo=0,i=0,led=0,emergencia=0,s=0;
+int segundos=0,tempo_alarme,dez,uni,servo=0,i=0,led=0,emergencia=0;
 
  // Funcao principal
 int main(void) {
@@ -198,7 +198,7 @@ int main(void) {
         {
             do
             {
-                LATDbits.LATD10 = 1; //Buzzer liga                printf("\nEMERGENCIA COM RAILLA!!!");       //Mensagem via bluetooth
+                LATDbits.LATD10 = 1; //Buzzer liga               
 
                 printf("\nEMERGENCIA COM RAILLA!!!");       //Mensagem via bluetooth
                 LCD_PosicaoCursor(1,1);
